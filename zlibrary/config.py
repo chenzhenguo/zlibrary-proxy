@@ -41,9 +41,23 @@ DOWNLOAD_CHUNK_SIZE = 8192
 # 注册用户的每日下载限制（Z-Library 注册用户通常 10 次/天）
 REGISTERED_USER_DAILY_LIMIT = 10
 
-# 账号文件路径：环境变量 > 默认值
-_DEFAULT_ACCOUNTS = Path(__file__).parent.parent / "accounts.json"
-ACCOUNTS_FILE = Path(os.environ.get("ZLIB_ACCOUNTS_FILE", str(_DEFAULT_ACCOUNTS)))
+# 账号文件路径：环境变量 > /app/data/accounts.json > 项目根目录/accounts.json
+_PROJECT_ROOT = Path(__file__).parent.parent
+_DEFAULT_ACCOUNTS = _PROJECT_ROOT / "data" / "accounts.json"
+_FALLBACK_ACCOUNTS = _PROJECT_ROOT / "accounts.json"
+
+def _resolve_accounts_file() -> Path:
+    """按优先级查找 accounts.json"""
+    env_val = os.environ.get("ZLIB_ACCOUNTS_FILE")
+    if env_val:
+        return Path(env_val)
+    if _DEFAULT_ACCOUNTS.exists():
+        return _DEFAULT_ACCOUNTS
+    if _FALLBACK_ACCOUNTS.exists():
+        return _FALLBACK_ACCOUNTS
+    return _DEFAULT_ACCOUNTS  # 返回默认路径（即使不存在，_load_accounts 会处理）
+
+ACCOUNTS_FILE = _resolve_accounts_file()
 
 
 # ============ PoW / 登录检测 ============
