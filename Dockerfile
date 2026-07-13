@@ -22,7 +22,7 @@ FROM python:3.10-slim AS runtime
 LABEL maintainer="jakeleos"
 LABEL org.opencontainers.image.title="zlibrary-proxy"
 LABEL org.opencontainers.image.description="Z-Library proxy with PoW solver, multi-account rotation, and auto URL discovery"
-LABEL org.opencontainers.image.source="https://hub.docker.com/r/jakeleos/zlibrary-proxy"
+LABEL org.opencontainers.image.source="https://github.com/chenzhenguo/zlibrary-proxy"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENV PYTHONUNBUFFERED=1 \

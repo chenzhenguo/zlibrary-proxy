@@ -1,6 +1,7 @@
 # Z-Library Proxy
 
 [![Docker](https://img.shields.io/badge/docker-jakeleos%2Fzlibrary--proxy-blue)](https://hub.docker.com/r/jakeleos/zlibrary-proxy)
+[![GitHub](https://img.shields.io/badge/source-chenzhenguo%2Fzlibrary--proxy-green)](https://github.com/chenzhenguo/zlibrary-proxy)
 [![Python](https://img.shields.io/badge/python-3.10+-green)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 
