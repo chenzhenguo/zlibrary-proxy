@@ -207,18 +207,12 @@ def book_detail():
 @app.route("/download")
 def download():
     """
-    下载：获取 CDN 直链并 302 重定向
+    下载：混合策略
 
-    不再通过服务器代理流式转发，直接让浏览器访问 CDN URL 下载。
-    优势：
-    - 服务器不消耗带宽和内存
-    - 下载速度更快（直连 CDN）
-    - 支持断点续传（浏览器原生支持）
-    - 服务器不会因为大文件下载阻塞 worker
-
-    账号切换逻辑由 client.get_download_url 内部处理：
-    - 遇到下载限制自动切换到下一个可用账号
-    - 所有账号用尽时抛出 DailyLimitReachedError
+    1. 获取下载 URL（内部自动处理 PoW + 登录 + 账号切换）
+    2. 如果返回 CDN 直链（跨域），302 重定向浏览器直接下载
+    3. 如果返回 "__SAME_DOMAIN__"，服务器代理流式下载
+       （浏览器没有 Z-Library 登录 cookie，必须走代理）
     """
     path = request.args.get("path", "")
 
@@ -226,18 +220,39 @@ def download():
         abort(400, "Invalid download path")
 
     try:
-        # 获取 CDN 直链（内部自动处理 PoW + 登录 + 账号切换）
-        cdn_url = client.get_download_url(path)
-        logger.info(f"Download redirect: path={path} -> {cdn_url[:80]}...")
+        result = client.get_download_url(path)
 
-        # 提取文件名用于日志
-        parsed = urlparse(cdn_url)
-        params = parse_qs(parsed.query)
-        filename = unquote(params.get("filename", ["book"])[0])
-        logger.info(f"Download file: {filename}")
+        # CDN 直链：浏览器直接下载
+        if result and result != "__SAME_DOMAIN__":
+            logger.info(f"Download redirect (CDN): {path} -> {result[:80]}")
+            return redirect(result, code=302)
 
-        # 302 重定向到 CDN 直链，浏览器直接下载
-        return redirect(cdn_url, code=302)
+        # 同域名：服务器代理流式下载
+        logger.info(f"Download proxy (same-domain): {path}")
+        chunks, headers = client.stream_download_from_path(path)
+
+        # 从 headers 提取文件名
+        cd = headers.get("Content-Disposition", "")
+        filename = "book"
+        if cd and "filename=" in cd:
+            # 尝试提取 filename="xxx.pdf" 或 filename=xxx.pdf
+            import re
+            fn_match = re.search(r'filename="?([^";\n]+)"?', cd)
+            if fn_match:
+                filename = fn_match.group(1)
+
+        # 如果没有 Content-Disposition，从 URL 路径猜测
+        if filename == "book":
+            filename = path.strip("/").split("/")[-1] + ".pdf"
+
+        response = Response(
+            chunks,
+            mimetype=headers.get("Content-Type", "application/octet-stream"),
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+            },
+        )
+        return response
 
     except DailyLimitReachedError as e:
         logger.warning(f"Download limit reached: {e}")

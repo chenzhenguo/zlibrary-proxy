@@ -22,7 +22,7 @@ Cookie 复用机制：
 import logging
 import threading
 from typing import List, Optional, Tuple
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import requests
 
@@ -278,13 +278,14 @@ class ZLibraryClient:
         self._ensure_access()
         self._ensure_logged_in()
         base_url = self._get_base_url()
+        base_domain = urlparse(base_url).netloc
         url = urljoin(base_url, download_path)
 
         # 无账号场景：直接尝试，失败则要求登录
         if not self.account_manager.has_accounts():
-            resp = self._try_get_download_redirect(url)
-            if resp is not None:
-                return resp
+            result = self._try_get_download_redirect(url, base_domain)
+            if result is not None:
+                return result
             logger.error("No accounts configured. Download requires login.")
             raise LoginRequiredError(
                 "No accounts configured. "
@@ -310,10 +311,10 @@ class ZLibraryClient:
                     continue
 
             # 尝试获取下载链接
-            resp = self._try_get_download_redirect(url)
-            if resp is not None:
+            result = self._try_get_download_redirect(url, base_domain)
+            if result is not None:
                 self.account_manager.record_download()
-                return resp
+                return result
 
             # 当前账号失败（限制/需登录），切换到下一个
             logger.info(f"Download attempt {attempt + 1}/{max_attempts} failed, switching account...")
@@ -331,26 +332,64 @@ class ZLibraryClient:
             f"URL: {url}"
         )
 
-    def _try_get_download_redirect(self, url: str) -> Optional[str]:
+    def _try_get_download_redirect(self, url: str, base_domain: str = "") -> Optional[str]:
         """
-        尝试获取下载重定向 URL
+        尝试获取下载重定向 URL（跟随重定向链）
+
+        策略：
+        1. 请求下载链接（不自动跟随重定向）
+        2. 如果 302 重定向到不同域名（CDN），返回该 URL
+        3. 如果 302 重定向到同域名，继续跟随（最多 5 次）
+        4. 如果最终是 200，说明文件直接在 Z-Library 域名上，
+           返回特殊标记 "__SAME_DOMAIN__" 让调用方走流式代理
+
+        Args:
+            url: 下载 URL
+            base_domain: 当前镜像域名（用于判断是否同域）
 
         Returns:
-            CDN URL 字符串，失败返回 None
+            CDN URL 字符串 / "__SAME_DOMAIN__"（需走代理）/ None（失败）
         """
         try:
-            resp = self.session.get(url, allow_redirects=False, timeout=REQUEST_TIMEOUT)
+            current_url = url
+            max_redirects = 5
 
-            if resp.status_code == 302:
-                location = resp.headers.get("Location", "")
-                if location:
-                    return location
+            for _ in range(max_redirects):
+                resp = self.session.get(
+                    current_url, allow_redirects=False, timeout=REQUEST_TIMEOUT
+                )
 
-            if resp.status_code == 200:
-                if _is_limit_response(resp):
-                    return None  # 触发账号切换
-                if _is_login_required(resp):
-                    return None  # 触发账号切换
+                if resp.status_code == 302:
+                    location = resp.headers.get("Location", "")
+                    if not location:
+                        return None
+
+                    # 判断是否跨域（CDN）
+                    location_domain = urlparse(location).netloc
+                    if base_domain and location_domain and base_domain not in location_domain:
+                        # 跨域 = CDN 直链，浏览器可以直接下载
+                        logger.info(f"CDN redirect: {location[:100]}")
+                        return location
+
+                    # 同域重定向，继续跟随
+                    current_url = location
+                    continue
+
+                if resp.status_code == 200:
+                    # 检查是否是限制/登录页面
+                    if _is_limit_response(resp):
+                        return None  # 触发账号切换
+                    if _is_login_required(resp):
+                        return None  # 触发账号切换
+
+                    # 200 且不是错误页面 = 文件内容直接在 Z-Library 域名上
+                    # 需要走流式代理下载
+                    logger.info("Download URL is same-domain, using proxy mode")
+                    return "__SAME_DOMAIN__"
+
+                # 其他状态码
+                logger.warning(f"Unexpected status: {resp.status_code}")
+                return None
 
         except requests.RequestException as e:
             logger.warning(f"Download request failed: {e}")
@@ -378,6 +417,46 @@ class ZLibraryClient:
             resp = self.session.get(cdn_url, stream=True, timeout=DOWNLOAD_TIMEOUT)
             resp.raise_for_status()
             return resp.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE), resp.headers
+        except requests.RequestException as e:
+            raise ZLibError(f"Download failed: {e}") from e
+
+    def stream_download_from_path(self, download_path: str) -> Tuple:
+        """
+        流式下载同域文件（代理模式）
+
+        当下载 URL 在 Z-Library 同域名上时使用此方法。
+        服务器携带登录 cookie 请求文件，流式转发给浏览器。
+
+        Args:
+            download_path: 下载路径（如 /dl/xxx）
+
+        Returns:
+            (iter_content 生成器, headers 字典) 元组
+
+        Raises:
+            ZLibError: 下载失败时抛出
+        """
+        self._ensure_access()
+        self._ensure_logged_in()
+        base_url = self._get_base_url()
+        url = urljoin(base_url, download_path)
+
+        try:
+            resp = self.session.get(
+                url, stream=True, allow_redirects=True, timeout=DOWNLOAD_TIMEOUT
+            )
+            resp.raise_for_status()
+
+            # 从 URL 或 headers 提取文件名
+            headers = dict(resp.headers)
+            # 尝试从 Content-Disposition 提取文件名
+            cd = resp.headers.get("Content-Disposition", "")
+            if cd:
+                headers["Content-Disposition"] = cd
+
+            self.account_manager.record_download()
+            logger.info(f"Streaming download: {download_path}")
+            return resp.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE), headers
         except requests.RequestException as e:
             raise ZLibError(f"Download failed: {e}") from e
 
