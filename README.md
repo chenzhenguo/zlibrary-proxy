@@ -1,6 +1,6 @@
-# Z-Library Proxy
+﻿# Z-Library Proxy
 
-[![Docker](https://img.shields.io/badge/docker-jakeleos%2Fzlibrary--proxy-blue)](https://hub.docker.com/r/jakeleos/zlibrary-proxy)
+[![Docker](https://img.shields.io/badge/docker-chenchen620%2Fzlibrary--proxy-blue)](https://hub.docker.com/r/chenchen620/zlibrary-proxy)
 [![GitHub](https://img.shields.io/badge/source-chenzhenguo%2Fzlibrary--proxy-green)](https://github.com/chenzhenguo/zlibrary-proxy)
 [![Python](https://img.shields.io/badge/python-3.10+-green)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
@@ -28,7 +28,7 @@ Z-Library 镜像站代理程序，提供书籍搜索、详情查看和下载功�
 
 ```bash
 # 1. 拉取镜像
-docker pull jakeleos/zlibrary-proxy:latest
+docker pull chenchen620/zlibrary-proxy:latest
 
 # 2. 准备数据目录
 mkdir -p data
@@ -42,7 +42,7 @@ docker run -d \
   -v ./data:/app/data \
   -e ZLIB_FLASK_SECRET=$(python -c "import secrets; print(secrets.token_hex(32))") \
   -e ZLIB_ACCESS_PASSWORD=123456 \
-  jakeleos/zlibrary-proxy:latest
+  chenchen620/zlibrary-proxy:latest
 
 # 4. 查看日志
 docker logs -f zlibrary-proxy
@@ -215,8 +215,8 @@ bash docker-push.sh
 ### CI 自动发布
 
 推送到 GitHub main 分支后，GitHub Actions 自动构建多架构镜像（amd64 + arm64）并推送：
-- `jakeleos/zlibrary-proxy:latest` - 最新版本
-- `jakeleos/zlibrary-proxy:YYYYMMDD-gitsha` - 版本快照
+- `chenchen620/zlibrary-proxy:latest` - 最新版本
+- `chenchen620/zlibrary-proxy:YYYYMMDD-gitsha` - 版本快照
 
 需要在 GitHub repo Settings > Secrets 中配置：
 - `DOCKERHUB_USERNAME` - Docker Hub 用户名

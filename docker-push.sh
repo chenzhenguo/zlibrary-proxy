@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 # =============================================================================
 # Z-Library Proxy Docker Hub 发布脚本
 #
@@ -11,7 +11,7 @@
 set -e
 
 # ============ 配置 ============
-DOCKER_USER="jakeleos"
+DOCKER_USER="chenchen620"
 IMAGE_NAME="zlibrary-proxy"
 VERSION="$(date +%Y%m%d)-$(git rev-parse --short HEAD 2>/dev/null || echo 'local')"
 

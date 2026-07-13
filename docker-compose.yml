@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 # =============================================================================
 # Z-Library Proxy Docker Compose
 #
@@ -12,7 +12,7 @@
 services:
   zlibrary-proxy:
     # 直接使用 Docker Hub 镜像，无需本地构建
-    image: jakeleos/zlibrary-proxy:latest
+    image: chenchen620/zlibrary-proxy:latest
     # 如需本地构建，注释掉上面的 image，取消注释下面的 build
     # build: .
     container_name: zlibrary-proxy

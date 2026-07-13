@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 # =============================================================================
 # Z-Library Proxy Dockerfile
 # 多阶段构建：builder 安装依赖 → runtime 精简运行镜像
-# 镜像名: jakeleos/zlibrary-proxy
+# 镜像名: chenchen620/zlibrary-proxy
 # =============================================================================
 
 # ---------- 阶段1: builder ----------
@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # ---------- 阶段2: runtime ----------
 FROM python:3.10-slim AS runtime
 
-LABEL maintainer="jakeleos"
+LABEL maintainer="chenchen620"
 LABEL org.opencontainers.image.title="zlibrary-proxy"
 LABEL org.opencontainers.image.description="Z-Library proxy with PoW solver, multi-account rotation, and auto URL discovery"
 LABEL org.opencontainers.image.source="https://github.com/chenzhenguo/zlibrary-proxy"
