@@ -35,6 +35,7 @@ README.md
 # 本地数据（通过 volume 挂载，不打入镜像）
 data/
 accounts.json
+accounts.json.example
 url_cache.json
 
 # 环境变量

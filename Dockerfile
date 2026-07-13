@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # =============================================================================
 # Z-Library Proxy Dockerfile
 # 多阶段构建：builder 安装依赖 → runtime 精简运行镜像
@@ -10,10 +10,8 @@ FROM python:3.10-slim AS builder
 
 WORKDIR /build
 
-# 仅复制依赖文件，利用 Docker 层缓存
 COPY requirements.txt .
 
-# 安装依赖到指定目录
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # ---------- 阶段2: runtime ----------
@@ -40,11 +38,14 @@ WORKDIR /app
 # 从 builder 阶段复制已安装的 Python 依赖
 COPY --from=builder /install /usr/local
 
-# 复制项目代码
+# 复制项目代码（accounts.json.default 会被包含，accounts.json 被 .dockerignore 排除）
 COPY . .
 
 # 创建数据目录
 RUN mkdir -p /app/data
+
+# 设置 entrypoint.sh 可执行权限
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 5000
 
@@ -54,5 +55,5 @@ VOLUME ["/app/data"]
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
-# gunicorn 启动
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "120", "app:app"]
+# 使用 entrypoint.sh 启动（自动检测 accounts.json）
+ENTRYPOINT ["/app/entrypoint.sh"]

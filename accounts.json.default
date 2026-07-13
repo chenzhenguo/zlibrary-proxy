@@ -1,0 +1,50 @@
+[
+  {
+    "email": "1961l20gvqpc@duckmail.sbs",
+    "password": "123456",
+    "cookies": [
+      {"name": "remix_userkey", "value": "a27ddf6786701deeefb3e2ea502f21c4", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "remix_userid", "value": "49600663", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "siteLanguage", "value": "en", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "hide_regBonusPopup_announcement", "value": "true", "domain": ".zlib.bz", "path": "/", "expiry": 0}
+    ],
+    "downloads_today": 0,
+    "last_used": ""
+  },
+  {
+    "email": "4cr8tj7f0lxx@duckmail.sbs",
+    "password": "123456",
+    "cookies": [
+      {"name": "remix_userkey", "value": "09aef712dbe0be9ed5d0c08c3240fa36", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "remix_userid", "value": "49600671", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "siteLanguage", "value": "en", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "hide_regBonusPopup_announcement", "value": "true", "domain": ".zlib.bz", "path": "/", "expiry": 0}
+    ],
+    "downloads_today": 0,
+    "last_used": ""
+  },
+  {
+    "email": "06mcsmpds11y@duckmail.sbs",
+    "password": "123456",
+    "cookies": [
+      {"name": "remix_userkey", "value": "d568580955c3e103582e6af861e16357", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "remix_userid", "value": "49600679", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "siteLanguage", "value": "en", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "hide_regBonusPopup_announcement", "value": "true", "domain": ".zlib.bz", "path": "/", "expiry": 0}
+    ],
+    "downloads_today": 0,
+    "last_used": ""
+  },
+  {
+    "email": "9rxxq0qtd6b3@duckmail.sbs",
+    "password": "123456",
+    "cookies": [
+      {"name": "remix_userkey", "value": "0c3fd9cf02c5db303fedc1f14cb27d53", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "remix_userid", "value": "49600689", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "siteLanguage", "value": "en", "domain": ".zlib.bz", "path": "/", "expiry": 0},
+      {"name": "hide_regBonusPopup_announcement", "value": "true", "domain": ".zlib.bz", "path": "/", "expiry": 0}
+    ],
+    "downloads_today": 0,
+    "last_used": ""
+  }
+]
