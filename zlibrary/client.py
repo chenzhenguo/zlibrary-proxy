@@ -285,14 +285,29 @@ class ZLibraryClient:
             resp = self._try_get_download_redirect(url)
             if resp is not None:
                 return resp
-            raise LoginRequiredError("Login required to download this book")
+            logger.error("No accounts configured. Download requires login.")
+            raise LoginRequiredError(
+                "No accounts configured. "
+                "Please mount accounts.json to /app/data/accounts.json. "
+                "See README for details."
+            )
 
         # 有账号场景：循环尝试每个账号
         max_attempts = len(self.account_manager.accounts)
         for attempt in range(max_attempts):
             # 确保当前账号已登录
             if not self.account_manager.is_logged_in():
-                self.account_manager.login(self.session, base_url)
+                login_ok = self.account_manager.login(self.session, base_url)
+                if not login_ok:
+                    logger.warning(
+                        f"Account login failed (attempt {attempt + 1}/{max_attempts}), "
+                        f"switching to next..."
+                    )
+                    if not self.account_manager.switch_account():
+                        break
+                    from .account_manager import _clear_login_cookies
+                    _clear_login_cookies(self.session)
+                    continue
 
             # 尝试获取下载链接
             resp = self._try_get_download_redirect(url)
@@ -311,7 +326,9 @@ class ZLibraryClient:
             _clear_login_cookies(self.session)
 
         raise AllAccountsExhaustedError(
-            f"Failed to download after trying {max_attempts} accounts. URL: {url}"
+            f"Failed to download after trying {max_attempts} accounts. "
+            f"All accounts may have expired cookies or invalid credentials. "
+            f"URL: {url}"
         )
 
     def _try_get_download_redirect(self, url: str) -> Optional[str]:
