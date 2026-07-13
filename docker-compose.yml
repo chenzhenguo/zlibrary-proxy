@@ -1,0 +1,42 @@
+# -*- coding: utf-8 -*-
+# =============================================================================
+# Z-Library Proxy Docker Compose
+#
+# 方式一：直接拉取 Docker Hub 镜像（推荐）
+#   docker compose up -d
+#
+# 方式二：本地构建
+#   docker compose up -d --build
+# =============================================================================
+
+services:
+  zlibrary-proxy:
+    # 直接使用 Docker Hub 镜像，无需本地构建
+    image: jakeleos/zlibrary-proxy:latest
+    # 如需本地构建，注释掉上面的 image，取消注释下面的 build
+    # build: .
+    container_name: zlibrary-proxy
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5000}:5000"
+    volumes:
+      # 持久化数据目录（accounts.json、url_cache.json）
+      - ./data:/app/data
+    environment:
+      # Flask session 密钥（生产环境必须修改）
+      ZLIB_FLASK_SECRET: ${ZLIB_FLASK_SECRET:-change-me-in-production}
+      # 页面访问密码
+      ZLIB_ACCESS_PASSWORD: ${ZLIB_ACCESS_PASSWORD:-123456}
+      # 账号文件路径
+      ZLIB_ACCOUNTS_FILE: /app/data/accounts.json
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

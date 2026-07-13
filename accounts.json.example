@@ -1,0 +1,16 @@
+[
+  {
+    "email": "user1@example.com",
+    "password": "your-password",
+    "cookies": [
+      {
+        "name": "remix_userid",
+        "value": "12345678",
+        "domain": ".zlib.bz",
+        "path": "/"
+      }
+    ],
+    "downloads_today": 0,
+    "last_used": ""
+  }
+]

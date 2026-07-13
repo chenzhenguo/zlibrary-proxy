@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Status{% endblock %}
+{% block content %}
+<div class="navbar">
+    <h2>Proxy Status</h2>
+    <div class="navbar-links">
+        <a href="/">Search</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="status-section">
+        <h3>URL Discovery</h3>
+        <p><strong>Current URL:</strong> {{ info.current_url or 'N/A' }}</p>
+        <p><strong>Last Update:</strong> {{ info.last_update or 'N/A' }}</p>
+        <p><strong>Cache Expired:</strong> {{ info.cache_expired }}</p>
+        <p><strong>GitHub README:</strong> <a href="{{ info.github_readme_url }}" target="_blank">link</a></p>
+    </div>
+
+    <div class="status-section">
+        <h3>Available URLs</h3>
+        <ol>
+        {% for url in info.urls %}
+            <li>{{ url }}{% if url == info.current_url %} <strong>(current)</strong>{% endif %}</li>
+        {% endfor %}
+        </ol>
+    </div>
+</div>
+
+<div class="card">
+    <div class="status-section">
+        <h3>Account Status</h3>
+        {% if info.accounts %}
+        <p><strong>Total:</strong> {{ info.accounts.total_accounts }}</p>
+        <p><strong>Current:</strong> {{ info.accounts.current_email or 'N/A' }}</p>
+        <p><strong>Downloads:</strong> {{ info.accounts.current_downloads }} / {{ info.accounts.daily_limit }}</p>
+        <p><strong>Logged In:</strong> {{ info.accounts.logged_in }}</p>
+        <table class="status-table">
+        <tr><th>#</th><th>Email</th><th>DL Today</th><th>Last Used</th></tr>
+        {% for acc in info.accounts.accounts %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ acc.email }}</td>
+            <td>{{ acc.downloads_today }}</td>
+            <td>{{ acc.last_used or 'Never' }}</td>
+        </tr>
+        {% endfor %}
+        </table>
+        {% else %}
+        <p>No accounts registered.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

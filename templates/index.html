@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Z-Library 搜索{% endblock %}
+{% block content %}
+<div class="navbar">
+    <h2>Z-Library</h2>
+    <div class="navbar-links">
+        <a href="/status">Status</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="card">
+    <form action="/search" method="get" class="search-form">
+        <input type="text" name="q" value="{{ query }}" placeholder="输入书名、作者或关键词" autofocus>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+</div>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+{% if books is not none %}
+<div class="card">
+    {% if books|length == 0 %}
+    <p class="result-meta">No results found.</p>
+    {% else %}
+    <p class="result-meta">Found {{ books|length }} results (page {{ page }})</p>
+    <ul class="book-list">
+    {% for b in books %}
+        <li>
+            <a href="/book?path={{ b.href|urlencode }}&title={{ b.title|urlencode }}&author={{ b.author|urlencode }}&extension={{ b.extension }}&filesize={{ b.filesize }}&year={{ b.year }}&language={{ b.language }}&download={{ b.download|urlencode }}">
+                {{ b.title }}
+            </a>
+            <div class="book-info">{{ b.author }} · {{ b.extension }} · {{ b.filesize }} · {{ b.year }} · {{ b.language }}</div>
+        </li>
+    {% endfor %}
+    </ul>
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="/search?q={{ query|urlencode }}&page={{ page - 1 }}">Previous</a>
+        {% endif %}
+        <a href="/search?q={{ query|urlencode }}&page={{ page + 1 }}">Next</a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

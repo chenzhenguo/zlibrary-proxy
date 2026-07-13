@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="navbar">
+    <h2>Book Detail</h2>
+    <div class="navbar-links">
+        <a href="/">Search</a>
+        <a href="/status">Status</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="card book-detail">
+    <h2>{{ title }}</h2>
+    <dl>
+        <dt>Author</dt>
+        <dd>{{ author or 'N/A' }}</dd>
+        <dt>Format</dt>
+        <dd>{{ extension or 'N/A' }}</dd>
+        <dt>Size</dt>
+        <dd>{{ filesize or 'N/A' }}</dd>
+        <dt>Year</dt>
+        <dd>{{ year or 'N/A' }}</dd>
+        <dt>Language</dt>
+        <dd>{{ language or 'N/A' }}</dd>
+    </dl>
+
+    {% if download %}
+    <a href="/download?path={{ download|urlencode }}" class="btn btn-download">
+        Download {{ extension|upper }} ({{ filesize }})
+    </a>
+    {% else %}
+    <div class="alert alert-error">No download link available.</div>
+    {% endif %}
+</div>
+
+<div style="text-align:center; margin-top:16px;">
+    <a href="javascript:history.back()" class="btn btn-back">Back to results</a>
+</div>
+{% endblock %}

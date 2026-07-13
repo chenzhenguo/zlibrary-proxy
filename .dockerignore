@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# 虚拟环境
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 测试（不打入生产镜像）
+tests/
+
+# Docker 自身文件
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 文档
+README.md
+*.md
+
+# 本地数据（通过 volume 挂载，不打入镜像）
+data/
+accounts.json
+url_cache.json
+
+# 环境变量
+.env
+.env.*

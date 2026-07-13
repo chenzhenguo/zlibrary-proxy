@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <h2>Z-Library Proxy</h2>
+        <form method="post" action="/login">
+            <input type="password" name="password" placeholder="Enter password" autocomplete="current-password">
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        {% if error %}
+        <div class="alert alert-error" style="margin-top:16px;">{{ error }}</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
