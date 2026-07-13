@@ -160,21 +160,47 @@ class AccountManager:
         with self._lock:
             _atomic_write_json(self.accounts_file, self.accounts)
 
-    def _load_cookies_to_session(self, session: requests.Session) -> None:
-        """将当前账号的 cookies 加载到 session（线程安全）"""
+    def _load_cookies_to_session(self, session: requests.Session, base_url: str = "") -> None:
+        """
+        将当前账号的 cookies 加载到 session（线程安全）
+
+        关键修复：cookie 域名适配当前镜像域名
+        保存的 cookie 域名可能是 .zlib.bz，但当前镜像可能是 z-lib.su，
+        需要将 cookie 域名替换为当前 base_url 的域名，否则 cookie 不会被发送。
+
+        Args:
+            session: requests.Session 对象
+            base_url: 当前 Z-Library 镜像 URL（用于提取域名）
+        """
         with self._lock:
             account = self._get_current_account_unsafe()
             if not account:
                 return
             cookies = account.get("cookies", [])
 
-        # 设置 cookie 不需要持有 _lock（每个 session 独立）
+        # 提取当前镜像域名
+        from urllib.parse import urlparse
+        current_domain = ""
+        if base_url:
+            parsed = urlparse(base_url)
+            current_domain = parsed.netloc
+            # 加上通配前缀（如 .z-lib.su）
+            if current_domain and not current_domain.startswith("."):
+                current_domain = "." + current_domain
+
+        # 设置 cookie，用当前镜像域名替换保存的域名
         for cookie in cookies:
             try:
+                name = cookie.get("name", "")
+                value = cookie.get("value", "")
+                # 跳过 PoW cookie（由 client 自行管理）
+                if name in POW_COOKIE_NAMES:
+                    continue
+                domain = current_domain or cookie.get("domain", "")
                 session.cookies.set(
-                    cookie.get("name", ""),
-                    cookie.get("value", ""),
-                    domain=cookie.get("domain", ""),
+                    name,
+                    value,
+                    domain=domain,
                     path=cookie.get("path", "/"),
                 )
             except Exception:
@@ -274,7 +300,7 @@ class AccountManager:
         # 方式1: 用保存的 cookie 登录
         cookies = account.get("cookies", [])
         if cookies:
-            self._load_cookies_to_session(session)
+            self._load_cookies_to_session(session, base_url)
             if self._check_login_status(session, base_url):
                 with self._lock:
                     self._logged_in = True
